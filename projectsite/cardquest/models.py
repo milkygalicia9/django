@@ -1,12 +1,14 @@
 from django.db import models
 
-# Create your models here.
+
 class BaseModel(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    created_at = models.DateTimeField(
+        auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         abstract = True
+
 
 class Trainer(BaseModel):
     name = models.CharField(max_length=100, null=True, blank=True)
@@ -16,14 +18,15 @@ class Trainer(BaseModel):
 
     def __str__(self):
         return self.name
-    
+
+
 class PokemonCard(BaseModel):
     RARITY_CHOICES = (
         ('Common', 'Common'),
         ('Uncommon', 'Uncommon'),
         ('Rare', 'Rare'),
-    )
 
+    )
     CARDTYPE_CHOICES = (
         ('Fire', 'Fire'),
         ('Water', 'Water'),
@@ -44,11 +47,12 @@ class PokemonCard(BaseModel):
         ('Steel', 'Steel'),
         ('Fairy', 'Fairy'),
     )
-
     name = models.CharField(max_length=100, null=True, blank=True)
-    rarity = models.CharField(max_length=100, choices=RARITY_CHOICES, null=True, blank=True)
+    rarity = models.CharField(
+        max_length=100, null=True, blank=True, choices=RARITY_CHOICES)
     hp = models.IntegerField(null=True, blank=True)
-    card_type = models.CharField(max_length=100, choices=CARDTYPE_CHOICES, null=True, blank=True)
+    card_type = models.CharField(
+        max_length=100, null=True, blank=True, choices=CARDTYPE_CHOICES)
     attack = models.CharField(max_length=100, null=True, blank=True)
     description = models.CharField(max_length=250, null=True, blank=True)
     weakness = models.CharField(max_length=250, null=True, blank=True)
@@ -59,11 +63,14 @@ class PokemonCard(BaseModel):
 
     def __str__(self):
         return self.name
-    
+
+
 class Collection(BaseModel):
-    card = models.ForeignKey(PokemonCard, on_delete=models.CASCADE, null=True, blank=True)
-    trainer = models.ForeignKey(Trainer, on_delete=models.CASCADE, null=True, blank=True)
+    card = models.ForeignKey(PokemonCard, blank=True,
+                             null=True, on_delete=models.CASCADE)
+    trainer = models.ForeignKey(
+        Trainer, blank=True, null=True, on_delete=models.CASCADE)
     collection_date = models.DateField()
 
     def __str__(self):
-        return self.trainer.name + " - " + self.card.name
+        return f"{self.card} {self.collection_date}"

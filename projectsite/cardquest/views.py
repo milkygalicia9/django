@@ -1,63 +1,57 @@
 from django.shortcuts import render
+
 from django.views.generic.list import ListView
+from django.views.generic.edit import UpdateView, DeleteView, CreateView
 from cardquest.models import PokemonCard, Trainer, Collection
-from .forms import TrainerForm, CollectionForm
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from cardquest.forms import TrainerForm, CollectionForm
+
 from django.urls import reverse_lazy
 import json
 
-# Create your views here.
+
 class HomePageView(ListView):
     model = PokemonCard
     context_object_name = 'home'
-    template_name = 'home.html'
+    template_name = "home.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['segment'] = 'home'
         return context
-    
+
+
 class PokemonCardListView(ListView):
     model = PokemonCard
     context_object_name = 'pokemoncard'
-    template_name = 'pokemoncards.html'
-    json_file_path = './data/pokemon_data.json'
+    template_name = "pokemoncards.html"
+    # Update this with the correct path to your JSON file
+    json_file_path = 'data/pokemon_data.json'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['segment'] = 'pokemon-card'
         pokemon_data = self.get_pokemon_data()
         context['pokemon_data'] = pokemon_data
         return context
-    
+
     def get_pokemon_data(self):
-        with open(self.json_file_path, 'r') as json_file:
-            pokemon_data = json.load(json_file)
-        return pokemon_data
-    
-class TrainerListView(ListView):
+        with open(self.json_file_path, 'r') as file:
+            data = json.load(file)
+            return data.get('pokemons', [])
+
+
+class TrainerList(ListView):
     model = Trainer
     context_object_name = 'trainer'
     template_name = 'trainers.html'
-    paginate_by = 15
+    paginate_by = 5
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['segment'] = 'trainer-list'
         return context
-    
 
-class CollectionListView(ListView):
-    model = Collection
-    context_object_name = 'collection'
-    template_name = 'collection.html'
-    paginate_by = 3
+    def get_queryset(self, *args, **kwargs):
+        qs = super(TrainerList, self).get_queryset(*args, **kwargs)
+        return qs
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['segment'] = 'collection-list'
-        return context
-    
 
 class TrainerCreateView(CreateView):
     model = Trainer
@@ -79,12 +73,27 @@ class TrainerDeleteView(DeleteView):
     success_url = reverse_lazy('trainer-list')
 
 
+class CollectionList(ListView):
+    model = Collection
+    context_object_name = 'collection'
+    template_name = 'collections.html'
+    paginate_by = 2
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
+    def get_queryset(self, *args, **kwargs):
+        qs = super(CollectionList, self).get_queryset(*args, **kwargs)
+        return qs
+
+
 class CollectionCreateView(CreateView):
     model = Collection
     form_class = CollectionForm
     template_name = 'collection_add.html'
     success_url = reverse_lazy('collection-list')
-    
+
 
 class CollectionUpdateView(UpdateView):
     model = Collection
